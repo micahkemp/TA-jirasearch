@@ -1,2 +1,5 @@
 [commands]
 export = system
+
+[jirasearch]
+export = system

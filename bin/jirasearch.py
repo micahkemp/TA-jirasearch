@@ -12,9 +12,6 @@ class JIRAsearchCommand(GeneratingCommand):
 
     jirasearch_realm = 'jirasearch'
 
-    # need to get this from config instead
-    jira_url = 
-
     def generate(self):
         storage_passwords = self.service.storage_passwords
         jira_username = None
@@ -28,7 +25,15 @@ class JIRAsearchCommand(GeneratingCommand):
         if not jira_username:
             raise Exception("Did not find username/password for realm: {}".format(self.jirasearch_realm))
 
-        jira = JIRA(self.jira_url, basic_auth=(jira_username, jira_password))
+        try:
+            jira_url = self.service.confs['jirasearch']['jirasearch']['jira_url']
+        except:
+            raise Exception("Did not find jira_url setting in [jirasearch] in jirasearch.conf")
+        
+        try:
+            jira = JIRA(jira_url, basic_auth=(jira_username, jira_password))
+        except:
+            raise Exception("Unable to connect to JIRA with configured URL/username/password")
 
 
         field_id_for_field = {}
