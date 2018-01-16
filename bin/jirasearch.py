@@ -64,7 +64,7 @@ class JIRAsearchCommand(GeneratingCommand):
             event = {
                 '_time': datetime.strptime(issue.fields.created, "%Y-%m-%dT%H:%M:%S.000+0000").strftime("%s"),
                 '_raw': "{}: {}".format(issue.key, issue.fields.summary),
-                'id': issue.key,
+                'key': issue.key,
             }
             for field in field_id_for_field:
                 field_id = field_id_for_field[field]
