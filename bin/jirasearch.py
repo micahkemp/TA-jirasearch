@@ -1,6 +1,7 @@
 from splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option
 
 import sys
+from datetime import datetime
 from jira import JIRA
 
 @Configuration()
@@ -23,7 +24,7 @@ class JIRAsearchCommand(GeneratingCommand):
         events = []
         for issue in self.jira.search_issues(self.query, maxResults=self.limit):
             event = {
-                '_time': issue.fields.created,
+                '_time': datetime.strptime(issue.fields.created, "%Y-%m-%dT%H:%M:%S.000+0000").strftime("%s"),
                 '_raw': "{}: {}".format(issue.key, issue.fields.summary),
                 'id': issue.key,
             }
