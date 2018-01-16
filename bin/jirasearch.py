@@ -32,7 +32,14 @@ class JIRAsearchCommand(GeneratingCommand):
                 field_id = field_id_for_field[field]
                 try:
                     field_value = getattr(issue.fields, field_id)
-                    event[field] = field_value
+                    if isinstance(field_value, list):
+                        event[field] = []
+                        for value in field_value:
+                            event[field].append("{}".format(value))
+                    elif field_value:
+                        event[field] = "{}".format(field_value)
+                    else:
+                        event[field] = []
                 except:
                     event[field] = []
 
