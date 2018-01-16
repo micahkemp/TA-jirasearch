@@ -10,16 +10,29 @@ class JIRAsearchCommand(GeneratingCommand):
     query = Option(require=True)
     limit = Option(default=10000)
 
-    # need to get this from config instead
-    #jira_url = 
-    #jira_username = 
-    #jira_password = 
+    jirasearch_realm = 'jirasearch'
 
-    jira = JIRA(jira_url, basic_auth=(jira_username, jira_password))
+    # need to get this from config instead
+    jira_url = 
 
     def generate(self):
+        storage_passwords = self.service.storage_passwords
+        jira_username = None
+        jira_password = None
+        for credential in storage_passwords:
+            credential_realm = credential.content.get('realm')
+            if credential_realm == self.jirasearch_realm:
+                jira_username = credential.content.get('username')
+                jira_password = credential.content.get('clear_password')
+
+        if not jira_username:
+            raise Exception("Did not find username/password for realm: {}".format(self.jirasearch_realm))
+
+        jira = JIRA(self.jira_url, basic_auth=(jira_username, jira_password))
+
+
         field_id_for_field = {}
-        for field in self.jira.fields():
+        for field in jira.fields():
             field_id_for_field[field['name']] = field['id']
 
         # if we can't access search_et, set it to the epoch time
@@ -42,7 +55,7 @@ class JIRAsearchCommand(GeneratingCommand):
         templated_query = Template(self.query).render(earliest=search_et_jira, latest=search_lt_jira)
 
         events = []
-        for issue in self.jira.search_issues(templated_query, maxResults=self.limit):
+        for issue in jira.search_issues(templated_query, maxResults=self.limit):
             event = {
                 '_time': datetime.strptime(issue.fields.created, "%Y-%m-%dT%H:%M:%S.000+0000").strftime("%s"),
                 '_raw': "{}: {}".format(issue.key, issue.fields.summary),
