@@ -2,6 +2,7 @@ from splunklib.searchcommands import dispatch, GeneratingCommand, Configuration,
 
 import sys
 from datetime import datetime
+import time
 from jira import JIRA
 from mako.template import Template
 
@@ -50,7 +51,7 @@ class JIRAsearchCommand(GeneratingCommand):
         try:
             search_lt_epoch = self.search_results_info.search_lt
         except:
-            search_lt_epoch = float(datetime.now().strftime("%s"))
+            search_lt_epoch = time.time()
 
         # format timestamps to be appropriate for JQL
         search_et_jira = datetime.fromtimestamp(search_et_epoch).strftime("%Y/%m/%d %H:%M")
@@ -62,7 +63,7 @@ class JIRAsearchCommand(GeneratingCommand):
         events = []
         for issue in jira.search_issues(templated_query, maxResults=self.limit):
             event = {
-                '_time': datetime.strptime(issue.fields.created, "%Y-%m-%dT%H:%M:%S.000+0000").strftime("%s"),
+                '_time': time.mktime(time.strptime(issue.fields.created, "%Y-%m-%dT%H:%M:%S.000+0000")),
                 '_raw': "{}: {}".format(issue.key, issue.fields.summary),
                 'key': issue.key,
             }
